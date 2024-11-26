@@ -1,14 +1,14 @@
 import { Outlet } from 'react-router-dom';
 import Nav from './components/Nav';
 
-function App() {
+const App: React.FC = () => {
   return (
-    <>
+    <div>
       <Nav />
       <main>
         <Outlet />
       </main>
-    </>
+    </div>
   );
 }
 
