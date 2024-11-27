@@ -1,126 +1,68 @@
 import { useState, useEffect } from 'react';
 import { searchGithub, searchGithubUser } from '../api/API';
-import { Candidate } from '../interfaces/Candidate.interface';
-
-
-
+import CandidateCard from '../components/cardCandidate';
+import type { Candidate } from '../interfaces/Candidate.interface';
 
 const CandidateSearch = () => {
-  const [candidates, setCandidates] = useState<Candidate[]>([]);
-  const [currentCandidate, setCurrentCandidate] = useState<Candidate | null>(null);
-  const [potentialCandidates, setPotentialCandidates] = useState<Candidate[]>([]);
+  const [results, setResults] = useState<Candidate[]>([]);
+  const [currentUser, setCurrentUser] = useState<Candidate>({
+    id: null,
+    login: null,
+    email: null,
+    html_url: null,
+    name: null,
+    bio: null,
+    company: null,
+    location: null,
+    avatar_url: null,
+  });
+  const [currentIdx, setCurrentIdx] = useState<number>(0);
+
+  const searchForSpecificUser = async (user: string) => {
+    const data: Candidate = await searchGithubUser(user);
+
+    setCurrentUser(data);
+  };
+
+  const searchForUsers = async () => {
+    const data: Candidate[] = await searchGithub();
+
+    setResults(data);
+
+    await searchForSpecificUser(data[currentIdx].login || '');
+  };
+
+  const makeDecision = async (isSelected: boolean) => {
+    if (isSelected) {
+      let parsedCandidates: Candidate[] = [];
+      const savedCandidates = localStorage.getItem('savedCandidates');
+      if (typeof savedCandidates === 'string') {
+        parsedCandidates = JSON.parse(savedCandidates);
+      }
+      parsedCandidates.push(currentUser);
+      localStorage.setItem('savedCandidates', JSON.stringify(parsedCandidates));
+    }
+    if (currentIdx + 1 < results.length) {
+      setCurrentIdx(currentIdx + 1);
+      await searchForSpecificUser(results[currentIdx + 1].login || '');
+    } else {
+      setCurrentIdx(0);
+      await searchForUsers();
+    }
+  };
 
   useEffect(() => {
+    searchForUsers();
+    searchForSpecificUser(currentUser.login || '');
 
-    const fetchCandidates = async () => {
-      const result = await searchGithub();
-      
- 
-      const candidatePromises = result.map((candidate: { login: string }) => searchGithubUser(candidate.login));
-    
-      const candidateDetails = await Promise.all(candidatePromises);
-      
-      result.forEach((candidate: Candidate, index: number) => {
-        candidate.avatar_url = candidateDetails[index].avatar_url;
-        candidate.name = candidateDetails[index].name;
-        candidate.login = candidateDetails[index].login;
-        candidate.html_url = candidateDetails[index].html_url;
-        candidate.bio = candidateDetails[index].bio;
-        candidate.location = candidateDetails[index].location;
-        candidate.email = candidateDetails[index].email;
-        candidate.company = candidateDetails[index].company ? candidateDetails[index].company : 'N/A';
-      });
-      
-      setCandidates(result);
-      setCurrentCandidate(result[0]);
-    };
-    
-    /*
-    const fetchCandidates = async () => {
-      const result = await searchGithub();
-      const candidatePromises = result.map((candidate: ) => searchGithubUser(candidate.login));
-      const candidateDetails = await Promise.all(candidatePromises);
-      result.forEach((candidate: , index: ) => {
-        candidate.avatar_url = candidateDetails[index].avatar_url;
-        candidate.name = candidateDetails[index].name;
-        candidate.login = candidateDetails[index].login;
-        candidate.html_url = candidateDetails[index].html_url;
-        candidate.bio = candidateDetails[index].bio;
-        candidate.location = candidateDetails[index].location;
-        candidate.email = candidateDetails[index].email;
-        candidate.company = candidateDetails[index].company
-
-          ? candidateDetails[index].company
-          : 'N/A';
-      }
-      );
-      setCandidates(result);
-      setCurrentCandidate(result[0]);
-    };
-    */
-
-    fetchCandidates();
   }, []);
 
-  const handleAccept = () => {
-    if (currentCandidate) {
-      setPotentialCandidates([...potentialCandidates, currentCandidate]);
-      showNextCandidate();
-    }
-  };
-
-  const handleReject = () => {
-    showNextCandidate();
-  };
-
-  const showNextCandidate = () => {
-    const nextIndex = candidates.indexOf(currentCandidate!) + 1;
-    if (nextIndex < candidates.length) {
-      setCurrentCandidate(candidates[nextIndex]);
-    } else {
-      setCurrentCandidate(null);
-    }
-  };
-
   return (
-    <div>
-      {currentCandidate ? (
-        <div>
-          <img src={currentCandidate.avatar_url} alt={currentCandidate.name} />
-          <h2>{currentCandidate.name}</h2>
-          <p>{currentCandidate.login}</p>
-          <p>{currentCandidate.location}</p>
-          <p>{currentCandidate.email}</p>
-          <p>{currentCandidate.company}</p>
-          <a href={currentCandidate.html_url}>Profile</a>
-          <button onClick={handleAccept}>+</button>
-          <button onClick={handleReject}>-</button>
-        </div>
-      ) : (
-        <p>No more candidates available</p>
-      )}
-      <h3>Potential Candidates</h3>
-      {potentialCandidates.length > 0 ? (
-        <ul>
-          {potentialCandidates.map((candidate, index) => (
-            <li key={index}>
-              <img src={candidate.avatar_url} alt={candidate.name} />
-              <h2>{candidate.name}</h2>
-              <p>{candidate.login}</p>
-              <p>{candidate.location}</p>
-              <p>{candidate.email}</p>
-              <p>{candidate.company}</p>
-              <a href={candidate.html_url}>Profile</a>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p>No candidates have been accepted</p>
-      )}
-    </div>
+    <>
+      <h1>Candidate Search</h1>
+      <CandidateCard potentialCandidate={currentUser} chooseCandidate={makeDecision} />
+    </>
   );
 };
 
-
 export default CandidateSearch;
-
