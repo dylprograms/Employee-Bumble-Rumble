@@ -3,6 +3,7 @@ import { searchGithub, searchGithubUser } from '../api/API';
 import CandidateCard from '../components/cardCandidate';
 import type { Candidate } from '../interfaces/Candidate.interface';
 
+
 const CandidateSearch = () => {
   const [results, setResults] = useState<Candidate[]>([]);
   const [currentUser, setCurrentUser] = useState<Candidate>({

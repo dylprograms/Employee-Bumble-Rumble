@@ -1,5 +1,4 @@
 
-
 import { Candidate } from '../interfaces/Candidate.interface';
 
 interface CandidateProps {
@@ -13,7 +12,7 @@ const CardCandidate = ({ potentialCandidate, chooseCandidate }: CandidateProps) 
       style={{
         backgroundColor: '#000044',
         color: '#fff',
-        width: '300px',
+        width: '400px',
         margin: '20px auto',
         borderRadius: '10px',
         overflow: 'hidden',
