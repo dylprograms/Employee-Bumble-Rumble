@@ -57,12 +57,14 @@ const SavedCandidate = ({
                 color: '#fff',
                 width: '50px',
                 height: '50px',
-                fontSize: '1.5rem',
+                fontSize: '1rem',
                 cursor: 'pointer',
                 boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
               }}
               onClick={() => removeCandidate(candidate.id || 0)}
-            />
+            >
+              -
+              </button>
           </td>
         </>
       ) : (
